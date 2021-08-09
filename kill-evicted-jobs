@@ -1,7 +1,7 @@
 apiVersion: batch/v1beta1
 kind: CronJob
 metadata:
-  name: hello
+  name: limpa-evicted-pods
 spec:
   schedule: "*/1 * * * *"
   jobTemplate:
@@ -9,11 +9,11 @@ spec:
       template:
         spec:
           containers:
-          - name: hello
-            image: wernight/kubectl
+          - name: clean-evicted
+            image: bitnami/kubectl
             imagePullPolicy: IfNotPresent
             command:
             - /bin/sh
             - -c
-            - kubectl get po -all-namespaces | awk '/Evicted|Completed/ {print "kubectl delete po -n ",$1,$2}'| sh -x
+            - kubectl get po --all-namespaces --field-selector 'status.phase==Failed' -o json | kubectl delete -f -
           restartPolicy: OnFailure
